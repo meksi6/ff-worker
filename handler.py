@@ -19,8 +19,21 @@ import urllib.request
 import runpod
 
 
+def _retry(fn, tries=3, wait=3):
+    """Geçici ağ hatalarında iş ÖLMEZ — 3 deneme, aralarında bekleme."""
+    last = None
+    for i in range(tries):
+        try:
+            return fn()
+        except Exception as e:  # noqa: BLE001 — ağ katmanı, her tür hata denenir
+            last = e
+            if i < tries - 1:
+                time.sleep(wait * (i + 1))
+    raise last
+
+
 def _dl(url, path):
-    urllib.request.urlretrieve(url, path)
+    _retry(lambda: urllib.request.urlretrieve(url, path))
 
 
 def handler(job):
@@ -53,11 +66,15 @@ def handler(job):
 
     with open(out, "rb") as f:
         data = f.read()
-    req = urllib.request.Request(
-        i["output_put_url"], data=data, method="PUT",
-        headers={"Content-Type": "video/mp4"},
-    )
-    urllib.request.urlopen(req, timeout=300)
+
+    def _put():
+        req = urllib.request.Request(
+            i["output_put_url"], data=data, method="PUT",
+            headers={"Content-Type": "video/mp4"},
+        )
+        urllib.request.urlopen(req, timeout=300)
+
+    _retry(_put)
     return {"ok": True, "seconds": round(time.time() - t0, 1), "bytes": len(data)}
 
 
