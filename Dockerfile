@@ -13,17 +13,17 @@ ENV PATH=/venv/bin:$PATH
 
 RUN git clone --depth 1 https://github.com/facefusion/facefusion.git /facefusion
 
+# cudnn-runtime taban imajı cuDNN 9 + cuBLAS'ı zaten içeriyor → pip nvidia
+# paketleri GEREKSİZ (~1.2GB tasarruf, cold start'ta daha hızlı imaj çekimi)
 RUN pip install --no-cache-dir -r /facefusion/requirements.txt \
  && pip uninstall -y onnxruntime \
- && pip install --no-cache-dir onnxruntime-gpu==1.22.0 nvidia-cublas-cu12 nvidia-cudnn-cu12 runpod
+ && pip install --no-cache-dir onnxruntime-gpu==1.22.0 runpod
 
 # Doğrulanmış model paketi (fal storage'daki hash'i tutan set) imaja gömülür
 ARG MODELS_URL
 RUN curl -sL "$MODELS_URL" -o /tmp/models.tar \
  && tar -xf /tmp/models.tar -C /facefusion/ \
  && rm /tmp/models.tar
-
-ENV LD_LIBRARY_PATH=/venv/lib/python3.12/site-packages/nvidia/cublas/lib:/venv/lib/python3.12/site-packages/nvidia/cudnn/lib
 
 COPY handler.py /handler.py
 CMD ["python3", "-u", "/handler.py"]
