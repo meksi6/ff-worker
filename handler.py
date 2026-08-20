@@ -53,8 +53,10 @@ def handler(job):
         "--face-swapper-model", i.get("swapper_model", "hyperswap_1c_256"),
         "--face-swapper-weight", str(i.get("swapper_weight", 0.5)),
         "--face-swapper-pixel-boost", "512x512",
+        "--face-mask-types", i.get("mask_types", "box"),
         "--face-selector-mode", "reference",
         "--reference-frame-number", str(i.get("reference_frame", 1)),
+        "--reference-face-distance", str(i.get("reference_distance", 0.6)),
         "--execution-providers", "cuda",
         "--output-video-fps", str(i.get("fps", 24)),
     ]
