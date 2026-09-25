@@ -6,6 +6,11 @@ Girdi (job.input):
   reference_frame   şablonda kahramanın net frontal karesi (24fps bazlı)
   output_put_url    sonucun PUT edileceği imzalı URL
   swapper_model / swapper_weight / fps  (ops.) — varsayılanlar üretim ayarı
+  enhancer          (ops.) True/model adı → yüz iyileştirici (gfpgan_1.4) açılır
+  enhancer_blend    (ops.) 0-100, iyileştirmenin karışım oranı (vars. 80)
+  expression_factor (ops.) 0-100, ifade geri yükleme gücü (vars. 80)
+  video_quality     (ops.) 0-100, çıktı kodlama kalitesi (vars. 80)
+  Ops. girdiler verilmezse komut 20 Ağu üretim komutuyla BİREBİR aynıdır.
 
 Dönüş: {ok, seconds, bytes} veya {ok: False, error}
 Not: bu işçi HİÇBİR şeyi dışarıdan indirmez (modeller imajda) — tek ağ
@@ -46,10 +51,15 @@ def handler(job):
     _dl(i["selfie_url"], src)
     _dl(i["template_url"], tpl)
 
+    processors = ["face_swapper", "expression_restorer"]
+    enhancer = i.get("enhancer")
+    if enhancer:
+        processors.append("face_enhancer")
+
     cmd = [
         "python3", "facefusion.py", "headless-run",
         "-s", src, "-t", tpl, "-o", out,
-        "--processors", "face_swapper", "expression_restorer",
+        "--processors", *processors,
         "--face-swapper-model", i.get("swapper_model", "hyperswap_1c_256"),
         "--face-swapper-weight", str(i.get("swapper_weight", 0.5)),
         "--face-swapper-pixel-boost", "512x512",
@@ -60,6 +70,14 @@ def handler(job):
         "--execution-providers", "cuda",
         "--output-video-fps", str(i.get("fps", 24)),
     ]
+    if enhancer:
+        model = enhancer if isinstance(enhancer, str) else "gfpgan_1.4"
+        cmd += ["--face-enhancer-model", model,
+                "--face-enhancer-blend", str(int(i.get("enhancer_blend", 80)))]
+    if "expression_factor" in i:
+        cmd += ["--expression-restorer-factor", str(int(i["expression_factor"]))]
+    if "video_quality" in i:
+        cmd += ["--output-video-quality", str(int(i["video_quality"]))]
     proc = subprocess.run(cmd, capture_output=True, text=True, cwd="/facefusion")
 
     if not os.path.exists(out):
