@@ -23,6 +23,10 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          # sha-<commit> etiketi DEĞİŞMEZ — üretim RunPod'da digest ile sabit
+          # (bkz. URETIM.md). latest yalnız 'son derleme' demek, canlı DEĞİL.
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
           build-args: |
             MODELS_URL=https://v3b.fal.media/files/b/0aa6c117/sYl8_WxWYdyxeCxGJzNhs_ff_models.tar

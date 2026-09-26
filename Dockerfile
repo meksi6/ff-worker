@@ -20,7 +20,7 @@ RUN git clone --depth 1 --branch 3.8.2 https://github.com/facefusion/facefusion.
 # paketleri GEREKSİZ (~1.2GB tasarruf, cold start'ta daha hızlı imaj çekimi)
 RUN pip install --no-cache-dir -r /facefusion/requirements.txt \
  && pip uninstall -y onnxruntime \
- && pip install --no-cache-dir onnxruntime-gpu==1.22.0 runpod
+ && pip install --no-cache-dir onnxruntime-gpu==1.22.0 runpod==1.12.0
 
 # Doğrulanmış model paketi (fal storage'daki hash'i tutan set) imaja gömülür
 ARG MODELS_URL
