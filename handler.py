@@ -78,8 +78,11 @@ def handler(job):
         cmd += ["--expression-restorer-factor", str(int(i["expression_factor"]))]
     if "video_quality" in i:
         cmd += ["--output-video-quality", str(int(i["video_quality"]))]
-    proc = subprocess.run(cmd, capture_output=True, text=True, cwd="/facefusion")
-
+    # single_face: karede yalnız kahramana en çok benzeyen TEK yüz (tek_yuz.py)
+    env = dict(os.environ)
+    if i.get("single_face"):
+        env["OS_SINGLE_FACE"] = "1"
+    proc = subprocess.run(cmd, capture_output=True, text=True, cwd="/facefusion", env=env)
     if not os.path.exists(out):
         tail = ((proc.stdout or "")[-800:]) + ((proc.stderr or "")[-800:])
         return {"ok": False, "error": tail}

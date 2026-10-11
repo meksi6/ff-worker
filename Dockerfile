@@ -36,5 +36,10 @@ RUN mkdir -p /facefusion/.assets/models \
         -o "/facefusion/.assets/models/$f"; \
     done
 
+# Tek yüz yaması: karede yalnız kahramana en çok benzeyen yüz değişir
+# (single_face girdisiyle açılır). Bkz. tek_yuz.py.
+COPY tek_yuz.py /tek_yuz.py
+RUN python3 /tek_yuz.py
+
 COPY handler.py /handler.py
 CMD ["python3", "-u", "/handler.py"]
