@@ -78,6 +78,10 @@ def handler(job):
         cmd += ["--expression-restorer-factor", str(int(i["expression_factor"]))]
     if "video_quality" in i:
         cmd += ["--output-video-quality", str(int(i["video_quality"]))]
+    # Yüz takibi: bulanık/kayıp karelerde kahramanı komşu karelerden doldur
+    if "tracker_score" in i:
+        cmd += ["--face-tracker-score", str(float(i["tracker_score"])),
+                "--target-frame-amount", str(int(i.get("frame_amount", 6)))]
     # single_face: karede yalnız kahramana en çok benzeyen TEK yüz (tek_yuz.py)
     env = dict(os.environ)
     if i.get("single_face"):
